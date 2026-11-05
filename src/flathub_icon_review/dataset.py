@@ -87,7 +87,7 @@ class Client:
         self.http = httpx.Client(
             timeout=30,
             follow_redirects=True,
-            headers={"User-Agent": "flathub-icon-review/0.1 (dataset experiment)"},
+            headers={"User-Agent": "appraise/0.2 (dataset experiment)"},
         )
 
     def get(self, url):

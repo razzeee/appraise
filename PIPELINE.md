@@ -1,4 +1,4 @@
-# Flathub icon review
+# Appraise pipeline
 
 Predict individual Flathub icon-quality review outcomes from icon images. This is
 an experimental offline pipeline: collect public labels, audit the dataset, train
@@ -10,10 +10,10 @@ Requires [uv](https://docs.astral.sh/uv/) and Python 3.12 (uv can install it).
 
 ```sh
 uv sync
-uv run icon-review collect --limit 300
-uv run icon-review audit
-uv run icon-review train
-uv run icon-review predict /path/to/icon.png
+uv run appraise collect --limit 300
+uv run appraise audit
+uv run appraise train
+uv run appraise predict /path/to/icon.png
 ```
 
 Collection uses a seeded random sample of the catalog, sequential requests, a
@@ -37,8 +37,8 @@ views, followed by the same per-criterion logistic-regression classifiers:
 
 ```sh
 uv sync --extra embeddings
-uv run --extra embeddings icon-review train --features clip --output artifacts/clip
-uv run --extra embeddings icon-review predict /path/to/icon.png --model artifacts/clip/model.joblib
+uv run --extra embeddings appraise train --features clip --output artifacts/clip
+uv run --extra embeddings appraise predict /path/to/icon.png --model artifacts/clip/model.joblib
 ```
 
 This downloads CPU PyTorch and the public `openai/clip-vit-base-patch32` weights on

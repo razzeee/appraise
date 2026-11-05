@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "flathub-icon-review"
+name = "appraise"
 version = "0.2.0"
-description = "Local predictions for Flathub icon, branding, name, and summary reviews"
+description = "Local ML-assisted quality checks for Flathub app listings: icons, branding colors, names, and summaries."
 requires-python = ">=3.12,<3.14"
 dependencies = ["httpx>=0.28,<1", "pillow>=11,<13", "numpy>=2,<3", "scikit-learn>=1.6,<2", "joblib>=1.4,<2"]
 
@@ -16,7 +16,11 @@ embeddings = ["torch>=2.6,<3", "transformers>=4.49,<5"]
 dev = ["pytest>=8,<10", "ruff>=0.11,<1"]
 
 [project.scripts]
+appraise = "flathub_icon_review.cli:main"
 icon-review = "flathub_icon_review.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flathub_icon_review"]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cpu" }

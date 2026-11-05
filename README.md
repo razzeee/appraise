@@ -1,6 +1,9 @@
-# icon-taste
+# Appraise
 
-Predict Flathub icon-quality review outcomes from icon images.
+*A second opinion for your app listing.*
+
+Local ML-assisted quality checks for Flathub app listings: icons, branding
+colors, names, and summaries.
 
 An experimental local tool that learns from public Flathub reviews and scores
 icons for footprint, contrast, detail, baked-in shadows, and contemporary style.
@@ -21,7 +24,7 @@ gh release download v0.2.0 --repo razzeee/icon-taste \
   --pattern icon-taste-models-v0.2.0.tar.gz --pattern SHA256SUMS
 sha256sum --ignore-missing -c SHA256SUMS
 tar -xzf icon-taste-models-v0.2.0.tar.gz
-uv run --extra embeddings icon-review review-url https://flathub.org/apps/org.gnome.Calculator
+uv run --extra embeddings appraise review-url https://flathub.org/apps/org.gnome.Calculator
 ```
 
 The bundle contains calibrated CLIP, baseline, and listing models, evaluation
@@ -33,16 +36,16 @@ To collect the dataset and train your own models instead:
 
 ```sh
 uv sync --extra embeddings
-uv run --extra embeddings icon-review collect --limit 0
-uv run --extra embeddings icon-review audit
-uv run --extra embeddings icon-review train --features clip --output artifacts/calibrated-clip
-uv run --extra embeddings icon-review train-listing --output artifacts/listing
+uv run --extra embeddings appraise collect --limit 0
+uv run --extra embeddings appraise audit
+uv run --extra embeddings appraise train --features clip --output artifacts/calibrated-clip
+uv run --extra embeddings appraise train-listing --output artifacts/listing
 ```
 
 Once trained, score an icon:
 
 ```sh
-uv run --extra embeddings icon-review predict /path/to/icon.png --model artifacts/calibrated-clip/model.joblib
+uv run --extra embeddings appraise predict /path/to/icon.png --model artifacts/calibrated-clip/model.joblib
 ```
 
 Predictions run locally and return per-criterion scores and calibration status,
@@ -66,7 +69,7 @@ and the same 756 test apps. Their local artifacts are in
 calibrated CLIP model on the training machine:
 
 ```sh
-uv run --extra embeddings icon-review predict /path/to/icon.png --model artifacts/calibrated-clip/model.joblib
+uv run --extra embeddings appraise predict /path/to/icon.png --model artifacts/calibrated-clip/model.joblib
 ```
 
 See [PIPELINE.md](PIPELINE.md) for collection, training, and development commands,
@@ -77,7 +80,7 @@ and [EXPERIMENTS.md](EXPERIMENTS.md) for results and limitations.
 Review a live Flathub page using both trained models:
 
 ```sh
-uv run --extra embeddings icon-review review-url https://flathub.org/apps/org.gnome.Calculator
+uv run --extra embeddings appraise review-url https://flathub.org/apps/org.gnome.Calculator
 ```
 
 This fetches current metadata and the icon, then runs all 15 criteria. It expects
@@ -90,18 +93,24 @@ JSON array. `--pass-threshold` controls score conversion (default `0.5`).
 With a collected dataset:
 
 ```sh
-uv run --extra embeddings icon-review audit-listing
-uv run --extra embeddings icon-review train-listing --output artifacts/listing
-uv run --extra embeddings icon-review review --app-id org.gnome.Calculator \
+uv run --extra embeddings appraise audit-listing
+uv run --extra embeddings appraise train-listing --output artifacts/listing
+uv run --extra embeddings appraise review --app-id org.gnome.Calculator \
   --model artifacts/listing/model.joblib
 ```
 
 For your own metadata, edit `examples/listing.json` and run:
 
 ```sh
-uv run --extra embeddings icon-review review examples/listing.json \
+uv run --extra embeddings appraise review examples/listing.json \
   --icon /path/to/icon.png --model artifacts/listing/model.joblib
 ```
 
 See [LISTING.md](LISTING.md) for all criteria, combined icon review, input format,
 rules-only mode, training details, and limitations.
+
+## Compatibility
+
+Appraise was previously named Icon Taste. The `icon-review` command remains an
+alias. The Python module remains `flathub_icon_review` so existing trained models
+can still be loaded. Older releases retain their original asset filenames.

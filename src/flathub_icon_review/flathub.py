@@ -47,7 +47,7 @@ def review_url(url: str, model: Path, icon_model: Path):
         if not path.is_file():
             raise ValueError(
                 f"Model not found: {path}. Copy the trained artifact here, "
-                f"run icon-review {command} --output {shlex.quote(str(path.parent))} "
+                f"run appraise {command} --output {shlex.quote(str(path.parent))} "
                 "(writes model.joblib there), or pass an explicit model path."
             )
     client = Client(0.25)
@@ -64,7 +64,7 @@ def review_url(url: str, model: Path, icon_model: Path):
             raise ValueError("Flathub returned an invalid icon URL")
         temporary_root = Path("/tmp/opencode")
         with TemporaryDirectory(
-            prefix="icon-taste-",
+            prefix="appraise-",
             dir=temporary_root if temporary_root.is_dir() else None,
         ) as directory:
             icon = None

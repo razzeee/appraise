@@ -9,7 +9,9 @@ from .dataset import audit, collect
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Flathub icon-review experiments")
+    parser = argparse.ArgumentParser(
+        description="Appraise: ML-assisted quality checks for Flathub app listings"
+    )
     commands = parser.add_subparsers(dest="command", required=True)
     fetch = commands.add_parser("collect", help="Collect/resume a seeded API sample")
     fetch.add_argument("--data", type=Path, default=Path("data/sample"))

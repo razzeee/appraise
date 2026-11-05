@@ -20,6 +20,49 @@ wheels = [
 ]
 
 [[package]]
+name = "appraise"
+version = "0.2.0"
+source = { editable = "." }
+dependencies = [
+    { name = "httpx" },
+    { name = "joblib" },
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "scikit-learn" },
+]
+
+[package.optional-dependencies]
+embeddings = [
+    { name = "torch", version = "2.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
+    { name = "torch", version = "2.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "transformers" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28,<1" },
+    { name = "joblib", specifier = ">=1.4,<2" },
+    { name = "numpy", specifier = ">=2,<3" },
+    { name = "pillow", specifier = ">=11,<13" },
+    { name = "scikit-learn", specifier = ">=1.6,<2" },
+    { name = "torch", marker = "extra == 'embeddings'", specifier = ">=2.6,<3", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "transformers", marker = "extra == 'embeddings'", specifier = ">=4.49,<5" },
+]
+provides-extras = ["embeddings"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8,<10" },
+    { name = "ruff", specifier = ">=0.11,<1" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.10.23"
 source = { registry = "https://pypi.org/simple" }
@@ -115,49 +158,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a3/1d/d730c664fcb4f1d264a722722a3134cf0881854f73c1fd58abf87572f232/filelock-4.2.9.tar.gz", hash = "sha256:96530b7c538d4ea08493ab067247aab7948c54d8cd622cce711c97cccc5d9896", size = 663116, upload-time = "2026-11-04T18:37:10.014Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/00/05/76184fe08339723d643ab47887a8e4de8f2921ca4e008617ab7490af7857/filelock-4.2.9-py3-none-any.whl", hash = "sha256:a379c50a729e5b68c8519a4d26489f755d9769960a236ecd838190e2a78db2e9", size = 164734, upload-time = "2026-11-04T18:37:08.273Z" },
-]
-
-[[package]]
-name = "flathub-icon-review"
-version = "0.2.0"
-source = { editable = "." }
-dependencies = [
-    { name = "httpx" },
-    { name = "joblib" },
-    { name = "numpy" },
-    { name = "pillow" },
-    { name = "scikit-learn" },
-]
-
-[package.optional-dependencies]
-embeddings = [
-    { name = "torch", version = "2.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
-    { name = "transformers" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "joblib", specifier = ">=1.4,<2" },
-    { name = "numpy", specifier = ">=2,<3" },
-    { name = "pillow", specifier = ">=11,<13" },
-    { name = "scikit-learn", specifier = ">=1.6,<2" },
-    { name = "torch", marker = "extra == 'embeddings'", specifier = ">=2.6,<3", index = "https://download.pytorch.org/whl/cpu" },
-    { name = "transformers", marker = "extra == 'embeddings'", specifier = ">=4.49,<5" },
-]
-provides-extras = ["embeddings"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=8,<10" },
-    { name = "ruff", specifier = ">=0.11,<1" },
 ]
 
 [[package]]

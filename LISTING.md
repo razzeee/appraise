@@ -9,9 +9,9 @@ baselines, not language models or claims of human-level semantic understanding.
 
 ```sh
 uv sync
-uv run icon-review collect --limit 0
-uv run icon-review audit-listing
-uv run icon-review train-listing --output artifacts/listing
+uv run appraise collect --limit 0
+uv run appraise audit-listing
+uv run appraise train-listing --output artifacts/listing
 ```
 
 If collection reports an error, repeat the collection command to resume.
@@ -33,7 +33,7 @@ commands. The older `model-v1` release contains only the original icon classifie
 ### Review a live Flathub page instead
 
 ```sh
-uv run --extra embeddings icon-review review-url \
+uv run --extra embeddings appraise review-url \
   https://flathub.org/apps/org.gnome.Calculator
 ```
 
@@ -59,7 +59,7 @@ old cached data.
 ### Review the saved snapshot
 
 ```sh
-uv run icon-review review --app-id org.gnome.Calculator \
+uv run appraise review --app-id org.gnome.Calculator \
   --model artifacts/listing/model.joblib
 ```
 
@@ -70,7 +70,7 @@ directory when you need fresh content.
 To include the five existing icon criteria in the same JSON output:
 
 ```sh
-uv run --extra embeddings icon-review review --app-id org.gnome.Calculator \
+uv run --extra embeddings appraise review --app-id org.gnome.Calculator \
   --model artifacts/listing/model.joblib \
   --icon-model artifacts/calibrated-clip/model.joblib
 ```
@@ -80,7 +80,7 @@ uv run --extra embeddings icon-review review --app-id org.gnome.Calculator \
 Copy and edit [`examples/listing.json`](examples/listing.json), then run:
 
 ```sh
-uv run icon-review review examples/listing.json \
+uv run appraise review examples/listing.json \
   --icon /path/to/icon.png --model artifacts/listing/model.joblib
 ```
 
@@ -95,7 +95,7 @@ Icon URLs in JSON are not downloaded; pass a local file using `--icon`.
 Omit `--model` to run rules, measurements, and hints without a trained model:
 
 ```sh
-uv run icon-review review examples/listing.json
+uv run appraise review examples/listing.json
 ```
 
 Without an icon, name and summary scoring still work, but branding-quality
@@ -108,7 +108,7 @@ classifiers, and insufficient calibration labels are explicit in the output.
 ### Print moderation API request bodies
 
 ```sh
-uv run --extra embeddings icon-review review-url \
+uv run --extra embeddings appraise review-url \
   https://flathub.org/apps/org.gnome.Calculator \
   --format moderation-json
 ```
