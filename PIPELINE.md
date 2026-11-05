@@ -75,22 +75,34 @@ on 2026-11-05.
 
 ## Evaluation
 
-We make one deterministic 75/25 train/test split, grouped across app IDs, exact
+We first make a deterministic 75/25 development/test split, grouped across app IDs, exact
 decoded icons, and near-duplicate difference hashes. Each connected group stays
 in one partition. Near-duplicate detection is heuristic: it can over-group simple
 icons and miss related brands. Review the saved groups before drawing conclusions.
+We then reserve 25% of the development groups for sigmoid calibration, giving
+approximately 56.25% training, 18.75% calibration, and 25% testing. The same
+dataset and seed preserve the original test partition. Actual app counts vary
+with group sizes. No group crosses any of the three partitions.
 
 Logistic regression uses fixed hyperparameters and class balancing. Criteria
 with fewer than five examples of either class in training are skipped. The model
 is fitted only on training data, including feature scaling; the saved artifact is
-the evaluated model, not a silently refitted all-data model.
+the evaluated model, not a silently refitted all-data model. A separate unweighted
+logistic regression maps each classifier's decision score to pass probability,
+using only calibration labels. At least five examples of each class are required
+for calibration; otherwise that criterion retains its raw score and prediction
+explicitly marks it as uncalibrated. Older artifacts remain supported.
 
 `evaluation.json` reports failure precision/recall, false-alarm rate, confusion
 counts, and failure average precision, alongside an always-pass reference.
+It also reports Brier score and log loss (lower is better), with separate raw
+`model` and `calibrated` results on the test partition.
 Undefined metrics are `null`. Small or single-class holdouts cannot establish
-useful accuracy. Prediction returns **uncalibrated scores**, not approval
-decisions. Before deployment, use a larger independent test set and separate
-validation data for calibration/threshold selection.
+useful accuracy. Calibration is fitted, not a guarantee of reliable probabilities
+on new data. Prediction reports calibration status per criterion; these are not
+approval decisions. The existing test partition has been inspected in earlier
+experiments, so evaluation remains exploratory. Before deployment, verify on
+new independent data. Thresholds remain fixed at 0.5 rather than tuned on tests.
 
 ## Files
 

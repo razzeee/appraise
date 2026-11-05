@@ -1,0 +1,16 @@
+{
+  "name": "Storybook",
+  "summary": "Read and organize stories",
+  "branding": [
+    {
+      "type": "primary",
+      "scheme_preference": "light",
+      "value": "#b8d9ef"
+    },
+    {
+      "type": "primary",
+      "scheme_preference": "dark",
+      "value": "#203e56"
+    }
+  ]
+}

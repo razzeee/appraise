@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flathub-icon-review"
-version = "0.1.0"
-description = "Experiments predicting Flathub icon quality review outcomes"
+version = "0.2.0"
+description = "Local predictions for Flathub icon, branding, name, and summary reviews"
 requires-python = ">=3.12,<3.14"
 dependencies = ["httpx>=0.28,<1", "pillow>=11,<13", "numpy>=2,<3", "scikit-learn>=1.6,<2", "joblib>=1.4,<2"]
 

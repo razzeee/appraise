@@ -207,12 +207,53 @@ def test_training_prediction_and_holdout_isolation(tmp_path):
         write_json(data / "records" / f"{i}.json", record)
     output = tmp_path / "model"
     result = train(data, output, "handcrafted", 42)
-    assert result["train_apps"] + result["test_apps"] == 80
+    assert (
+        sum(result[key] for key in ("train_apps", "calibration_apps", "test_apps"))
+        == 80
+    )
     assert "skipped" in result["criteria"][CRITERIA[-1]]
     split = json.loads((output / "split.json").read_text())["apps"]
     train_groups = {r["group"] for r in split if r["split"] == "train"}
     test_groups = {r["group"] for r in split if r["split"] == "test"}
     assert train_groups.isdisjoint(test_groups)
+    calibration_groups = {r["group"] for r in split if r["split"] == "calibration"}
+    assert calibration_groups
+    assert calibration_groups.isdisjoint(train_groups | test_groups)
+    from sklearn.model_selection import GroupShuffleSplit
+
+    _, original_test = next(
+        GroupShuffleSplit(n_splits=1, test_size=0.25, random_state=42).split(
+            np.arange(len(split)), groups=[r["group"] for r in split]
+        )
+    )
+    assert {split[i]["app_id"] for i in original_test} == {
+        r["app_id"] for r in split if r["split"] == "test"
+    }
     prediction = predict(output / "model.joblib", data / "0.png")
     assert 0 <= prediction["criteria"][CRITERIA[0]]["pass_score"] <= 1
     assert "unavailable" in prediction["criteria"][CRITERIA[-1]]
+    assert prediction["scores_are_calibrated"]
+    assert "brier_score" in result["criteria"][CRITERIA[0]]["calibrated"]
+
+    import joblib
+
+    artifact = joblib.load(output / "model.joblib")
+    assert artifact["models"][CRITERIA[0]][0].n_samples_seen_ == result["train_apps"]
+    del artifact["calibrators"]
+    joblib.dump(artifact, output / "legacy.joblib")
+    assert not predict(output / "legacy.joblib", data / "0.png")[
+        "scores_are_calibrated"
+    ]
+
+    # A one-class calibration set must not claim calibrated probabilities.
+    calibration_apps = {r["app_id"] for r in split if r["split"] == "calibration"}
+    for path in (data / "records").glob("*.json"):
+        record = json.loads(path.read_text())
+        if record["app_id"] in calibration_apps:
+            record["labels"][CRITERIA[0]] = True
+            write_json(path, record)
+    fallback = train(data, tmp_path / "fallback", "handcrafted", 42)
+    assert "calibration_unavailable" in fallback["criteria"][CRITERIA[0]]
+    prediction = predict(tmp_path / "fallback/model.joblib", data / "0.png")
+    assert not prediction["scores_are_calibrated"]
+    assert not prediction["criteria"][CRITERIA[0]]["calibrated"]

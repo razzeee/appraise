@@ -30,8 +30,8 @@ def write_json(path: Path, value):
     temporary.replace(path)
 
 
-def labels_from_review(review: dict) -> dict:
-    labels = dict.fromkeys(CRITERIA)
+def labels_from_review(review: dict, criteria=CRITERIA) -> dict:
+    labels = dict.fromkeys(criteria)
     for guideline in review["guidelines"]:
         key = guideline["guideline_id"]
         if key in labels:
@@ -50,12 +50,13 @@ def overall_label(labels: dict):
     return None
 
 
-def freshness_from_review(review: dict) -> dict:
+def freshness_from_review(review: dict, criteria=CRITERIA) -> dict:
     """Without review timestamps, freshness is unknown, not implicitly current."""
-    changed = review.get("metadata_changed_at", {}).get("app-icon")
-    freshness = dict.fromkeys(CRITERIA, "unknown")
+    freshness = dict.fromkeys(criteria, "unknown")
     for guideline in review["guidelines"]:
         key = guideline["guideline_id"]
+        category = guideline.get("guideline", {}).get("category", "app-icon")
+        changed = (review.get("metadata_changed_at") or {}).get(category)
         updated = guideline.get("updated_at")
         if key in freshness and changed and updated:
 

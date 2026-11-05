@@ -106,3 +106,70 @@ Both pipelines now work end-to-end. Next: expand the dataset, inspect mistakes
 and review freshness, then compare hybrid features using separate validation
 data. Preserve a new independent test set for final claims; do not repeatedly
 tune against this exploratory holdout.
+
+## Separate calibration experiment
+
+Both backends were retrained with 1,693 training apps and 580 calibration apps,
+preserving the existing 756-app test partition. The two split manifests were
+verified identical, with no image groups shared across partitions. Unweighted
+sigmoid calibration was fitted separately for all five criteria. Saved-model
+prediction was verified for both backends, including calibration status.
+
+Local outputs: `artifacts/calibrated-baseline/` and `artifacts/calibrated-clip/`.
+Original models and the uncalibrated `model-v1` release are preserved.
+
+Test Brier scores (lower is better), raw versus calibrated scores from the
+same newly trained classifiers:
+
+| Criterion | Baseline raw | Baseline calibrated | CLIP raw | CLIP calibrated |
+| --- | ---: | ---: | ---: | ---: |
+| Contrast | 0.1578 | 0.1515 | 0.1959 | 0.1779 |
+| Detail | 0.2536 | 0.2137 | 0.2363 | 0.1899 |
+| Footprint | 0.1469 | 0.1480 | 0.2256 | 0.1997 |
+| Contemporary style | 0.1952 | 0.1972 | 0.2271 | 0.1915 |
+| No baked-in shadows | 0.1823 | 0.1479 | 0.1842 | 0.1444 |
+
+Log loss decreased for every criterion in both backends. Brier score improved
+for all CLIP criteria, but worsened slightly for baseline footprint and style.
+This does not establish perfect calibration or production reliability. The
+test set has been inspected in earlier experiments, label freshness remains
+unknown, and comparisons to older models also reflect the smaller training set.
+Thresholds and classifier hyperparameters were not tuned against these results.
+
+## Listing review: name, summary, and branding
+
+The first listing run completed over the 3,357 cached AppStream/review snapshots.
+Its 3,089 connected image/text groups produced 1,873 training apps, 614 calibration
+apps, and 870 test apps. All seven learned targets were trained and calibrated.
+The three automatic rules exactly matched recorded labels on the test partition.
+The listing partition is separate from the earlier icon partition.
+
+Held-out results at the fixed 0.5 threshold:
+
+| Criterion | Labeled train/calibration/test | Calibrated Brier | Failure precision | Failure recall |
+| --- | --- | ---: | ---: | ---: |
+| Just the name | 1502 / 483 / 705 | 0.0640 | 64.9% | 32.9% |
+| Name formatting | 1535 / 487 / 713 | 0.0664 | 76.2% | 38.1% |
+| Nontechnical summary | 1526 / 495 / 707 | 0.1595 | 64.2% | 39.9% |
+| Summary formatting | 1426 / 472 / 675 | 0.1031 | 81.4% | 58.9% |
+| No repeated name | 1380 / 460 / 650 | 0.0704 | 67.5% | 40.3% |
+| No leading article | 1451 / 488 / 677 | 0.0533 | 96.1% | 74.2% |
+| Good brand colors | 529 / 196 / 268 | 0.1926 | 90.0% | 20.0% |
+
+These results expose limited recall, especially for branding; a high pass score
+is not an approval guarantee. Character n-grams are a lightweight text baseline,
+not a semantic language model. No thresholds or hyperparameters were tuned after
+examining these test results.
+
+Audit found two conflicting identical-input groups: the name “2048” across two
+apps and branding across five NetXMS variants. All review freshness is unknown.
+Of 1,004 labeled branding reviews, 993 have supported colors and usable icons;
+other branding rows lack both resolved themes or contain unsupported hex colors.
+The collector's icon requirement also limits coverage of otherwise usable text.
+
+Artifacts are in `artifacts/listing/`; the detailed audit is in
+`data/sample/listing-audit.json`. Saved-model inference was verified through the
+CLI for both custom metadata and a collected app. Combined review of
+`org.gnome.Calculator` produced all ten listing criteria plus all five calibrated
+icon criteria. See [LISTING.md](LISTING.md) for reproduction commands and input
+semantics. These artifacts are included in the `v0.2.0` release bundle.
