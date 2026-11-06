@@ -1,0 +1,32 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python }}
+      - run: uv sync --locked --python ${{ matrix.python }}
+      - run: uv run --no-sync ruff check .
+      - run: uv run --no-sync ruff format --check .
+      - run: uv run --no-sync pytest
+      - run: uv build
+      - name: Verify installed wheel commands
+        run: |
+          uv venv wheel-check
+          uv pip install --python wheel-check/bin/python dist/*.whl
+          wheel-check/bin/appraise --help
+          wheel-check/bin/icon-review --help

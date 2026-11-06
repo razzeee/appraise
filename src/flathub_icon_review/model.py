@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import joblib
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -15,6 +14,7 @@ from sklearn.model_selection import GroupShuffleSplit
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from .artifacts import atomic_dump, load_model
 from .dataset import CRITERIA, load_records, usable_label, write_json
 from .features import FEATURE_VERSION, Extractor, views
 
@@ -197,7 +197,7 @@ def train(root: Path, output: Path, kind: str, seed: int):
             ],
         },
     )
-    joblib.dump(
+    atomic_dump(
         {"features": extractor.spec, "models": models, "calibrators": calibrators},
         output / "model.joblib",
     )
@@ -206,16 +206,7 @@ def train(root: Path, output: Path, kind: str, seed: int):
 
 def predict(model_path: Path, image_path: Path):
     # Only load model artifacts you trust: joblib is pickle-based.
-    artifact = joblib.load(model_path)
-    if (
-        not isinstance(artifact, dict)
-        or not isinstance(artifact.get("features"), dict)
-        or not isinstance(artifact.get("models"), dict)
-        or artifact["features"].get("kind") not in ("handcrafted", "clip")
-    ):
-        raise ValueError(
-            "Expected an icon model trained with 'appraise train', not a listing model"
-        )
+    artifact = load_model(model_path, "icon")
     spec = artifact["features"]
     if spec.get("version") != FEATURE_VERSION:
         raise ValueError("Model uses an incompatible feature version")

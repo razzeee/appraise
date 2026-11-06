@@ -13,9 +13,18 @@ FEATURE_VERSION = 1
 CLIP_MODEL = "openai/clip-vit-base-patch32"
 
 
+def open_rgba(source):
+    try:
+        with Image.open(source) as original:
+            if original.width * original.height > 16_777_216:
+                raise ValueError("Icon exceeds the 16-megapixel image limit")
+            return original.convert("RGBA")
+    except Image.DecompressionBombError as error:
+        raise ValueError("Icon exceeds the safe image size limit") from error
+
+
 def views(path: Path) -> list[Image.Image]:
-    with Image.open(path) as original:
-        rgba = original.convert("RGBA")
+    rgba = open_rgba(path)
     # Pad instead of cropping away footprint/margins.
     rgba = ImageOps.pad(rgba, (224, 224), color=(0, 0, 0, 0))
     return [
@@ -27,8 +36,7 @@ def views(path: Path) -> list[Image.Image]:
 
 
 def handcrafted(path: Path) -> np.ndarray:
-    with Image.open(path) as original:
-        rgba = np.asarray(original.convert("RGBA").resize((64, 64))) / 255.0
+    rgba = np.asarray(open_rgba(path).resize((64, 64))) / 255.0
     alpha = rgba[:, :, 3]
     visible = alpha > 0.05
     coords = np.argwhere(visible)
@@ -69,8 +77,13 @@ class Extractor:
         self.kind = kind
         self.spec = {"kind": kind, "version": FEATURE_VERSION}
         if kind == "clip":
-            import torch
-            from transformers import CLIPModel, CLIPProcessor
+            try:
+                import torch
+                from transformers import CLIPModel, CLIPProcessor
+            except ImportError as error:
+                raise ValueError(
+                    "CLIP dependencies are missing; run uv sync --extra embeddings"
+                ) from error
 
             torch.set_num_threads(min(4, torch.get_num_threads()))
             self.model = CLIPModel.from_pretrained(CLIP_MODEL, revision=revision).eval()

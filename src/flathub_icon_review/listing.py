@@ -6,7 +6,6 @@ from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 
-import joblib
 import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -15,6 +14,7 @@ from sklearn.model_selection import GroupShuffleSplit
 from sklearn.pipeline import FeatureUnion, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
+from .artifacts import atomic_dump, load_model
 from .dataset import (
     freshness_from_review,
     labels_from_review,
@@ -340,7 +340,7 @@ def train_listing(root: Path, output: Path, seed=42):
         },
     )
     write_json(output / "evaluation.json", report)
-    joblib.dump(
+    atomic_dump(
         {
             "artifact_type": "listing",
             "version": VERSION,
@@ -362,7 +362,7 @@ def review_listing(
     criteria = rules(app)
     artifact = {"models": {}, "calibrators": {}}
     if model_path is not None:
-        artifact = joblib.load(model_path)
+        artifact = load_model(model_path, "listing")
         if (
             artifact.get("artifact_type") != "listing"
             or artifact.get("version") != VERSION

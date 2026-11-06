@@ -15,7 +15,8 @@ CLIP-based classifiers, and duplicate-aware evaluation.
 ## Quick start
 
 Requires [uv](https://docs.astral.sh/uv/) and Python 3.12. From a fresh clone,
-download the trained models from the `v0.2.1` release (requires GitHub CLI access
+use Appraise `v0.2.2` and download the unchanged trained models from the `v0.2.1`
+release (requires GitHub CLI access
 to this repository):
 
 ```sh
@@ -108,3 +109,6 @@ uv run --extra embeddings appraise review examples/listing.json \
 
 See [LISTING.md](LISTING.md) for all criteria, combined icon review, input format,
 rules-only mode, training details, and limitations.
+
+See [PRODUCTION.md](PRODUCTION.md) for deployment safeguards, release checks,
+and the independent-validation requirements before any unattended moderation.

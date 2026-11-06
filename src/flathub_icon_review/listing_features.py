@@ -6,7 +6,8 @@ import unicodedata
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+
+from .features import open_rgba
 
 VERSION = 1
 NAME_CRITERIA = ("app-name-just-the-name", "app-no-weird-formatting")
@@ -119,8 +120,7 @@ def brand_measurements(app, icon: Path):
     colors = primary_colors(app)
     if len(colors) != 2:
         raise ValueError("Good-brand-color scoring needs light and dark primary colors")
-    with Image.open(icon) as image:
-        rgba = np.asarray(image.convert("RGBA").resize((64, 64))) / 255
+    rgba = np.asarray(open_rgba(icon).resize((64, 64))) / 255
     visible = rgba[:, :, 3] > 0.05
     if not visible.any():
         raise ValueError("Good-brand-color scoring needs a visible icon")

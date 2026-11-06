@@ -1,6 +1,7 @@
 import argparse
 import json
 import math
+from importlib.metadata import version
 from pathlib import Path
 
 import httpx
@@ -11,6 +12,9 @@ from .dataset import audit, collect
 def main():
     parser = argparse.ArgumentParser(
         description="Appraise: ML-assisted quality checks for Flathub app listings"
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"Appraise {version('appraise')}"
     )
     commands = parser.add_subparsers(dest="command", required=True)
     fetch = commands.add_parser("collect", help="Collect/resume a seeded API sample")

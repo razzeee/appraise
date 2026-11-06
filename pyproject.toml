@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "appraise"
-version = "0.2.1"
+version = "0.2.2"
 description = "Local ML-assisted quality checks for Flathub app listings: icons, branding colors, names, and summaries."
 requires-python = ">=3.12,<3.14"
 dependencies = ["httpx>=0.28,<1", "pillow>=11,<13", "numpy>=2,<3", "scikit-learn>=1.6,<2", "joblib>=1.4,<2"]

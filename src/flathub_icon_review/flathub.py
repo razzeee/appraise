@@ -51,6 +51,8 @@ def review_url(url: str, model: Path, icon_model: Path):
                 "(writes model.joblib there), or pass an explicit model path."
             )
     client = Client(0.25)
+    # Canonical API/icon hosts only, including every redirect destination.
+    client.allowed_hosts = {"flathub.org", "dl.flathub.org"}
     api_url = f"{API}/appstream/{app_id}"
     try:
         app = client.get(api_url).json()

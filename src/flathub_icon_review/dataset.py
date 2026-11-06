@@ -9,9 +9,12 @@ import time
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
+from tempfile import NamedTemporaryFile
+from urllib.parse import urlsplit
 
 import httpx
-from PIL import Image
+
+from .features import open_rgba
 
 API = "https://flathub.org/api/v2"
 CRITERIA = (
@@ -24,10 +27,19 @@ CRITERIA = (
 
 
 def write_json(path: Path, value):
+    content = json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
-    temporary.replace(path)
+    temporary = None
+    try:
+        with NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=path.parent, suffix=".tmp", delete=False
+        ) as file:
+            temporary = Path(file.name)
+            file.write(content)
+        temporary.replace(path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def labels_from_review(review: dict, criteria=CRITERIA) -> dict:
@@ -81,30 +93,73 @@ def load_records(root: Path) -> list[dict]:
 
 
 class Client:
-    def __init__(self, interval: float):
+    def __init__(self, interval: float, allowed_hosts=None, max_bytes=16 * 1024 * 1024):
         self.interval = interval
+        self.allowed_hosts = allowed_hosts
+        self.max_bytes = max_bytes
         self.last_request = 0.0
         self.http = httpx.Client(
             timeout=30,
-            follow_redirects=True,
+            follow_redirects=False,
             headers={"User-Agent": "appraise/0.2 (dataset experiment)"},
         )
+
+    def _get_bounded(self, url):
+        for _ in range(6):
+            parsed = urlsplit(str(url))
+            if self.allowed_hosts is not None and (
+                parsed.scheme != "https"
+                or parsed.hostname not in self.allowed_hosts
+                or parsed.username is not None
+                or parsed.password is not None
+                or parsed.port not in (None, 443)
+            ):
+                raise ValueError("Download URL is outside the trusted Flathub hosts")
+            with self.http.stream("GET", url, follow_redirects=False) as response:
+                if response.has_redirect_location:
+                    url = response.url.join(response.headers["location"])
+                    continue
+                response.raise_for_status()
+                content = bytearray()
+                for chunk in response.iter_bytes(chunk_size=65536):
+                    if len(content) + len(chunk) > self.max_bytes:
+                        raise ValueError(
+                            f"Download exceeds {self.max_bytes} byte limit"
+                        )
+                    content.extend(chunk)
+                # Preserve the request and status for callers and retry handling.
+                headers = dict(response.headers)
+                # iter_bytes already decoded compressed content. The rebuilt
+                # response must not attempt decompression a second time.
+                for header in (
+                    "content-encoding",
+                    "content-length",
+                    "transfer-encoding",
+                ):
+                    headers.pop(header, None)
+                return httpx.Response(
+                    response.status_code,
+                    headers=headers,
+                    content=bytes(content),
+                    request=response.request,
+                )
+        raise ValueError("Too many download redirects")
 
     def get(self, url):
         for attempt in range(4):
             time.sleep(max(0, self.interval - (time.monotonic() - self.last_request)))
             self.last_request = time.monotonic()
             try:
-                response = self.http.get(url)
-                response.raise_for_status()
-                return response
+                return self._get_bounded(url)
             except httpx.HTTPStatusError as error:
                 if error.response.status_code not in (429, 500, 502, 503, 504):
                     raise
                 if attempt == 3:
                     raise
                 retry_after = error.response.headers.get("Retry-After", "")
-                delay = float(retry_after) if retry_after.isdigit() else 2**attempt
+                delay = (
+                    min(float(retry_after), 30) if retry_after.isdigit() else 2**attempt
+                )
             except httpx.TransportError:
                 if attempt == 3:
                     raise
@@ -146,13 +201,11 @@ def collect(root: Path, limit: int, seed: int, interval: float, app_ids: list[st
                     skipped.append({"app_id": app_id, "reason": "No AppStream icon"})
                     continue
                 image_bytes = client.get(url).content
-                with Image.open(io.BytesIO(image_bytes)) as image:
-                    image.load()
-                    rgba = image.convert("RGBA")
-                    width, height = rgba.size
-                    pixels_hash = hashlib.sha256(
-                        f"{width}x{height}:".encode() + rgba.tobytes()
-                    ).hexdigest()
+                rgba = open_rgba(io.BytesIO(image_bytes))
+                width, height = rgba.size
+                pixels_hash = hashlib.sha256(
+                    f"{width}x{height}:".encode() + rgba.tobytes()
+                ).hexdigest()
                 digest = hashlib.sha256(image_bytes).hexdigest()
                 image_path = root / "icons" / digest
                 image_path.parent.mkdir(exist_ok=True)
