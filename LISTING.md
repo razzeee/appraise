@@ -24,7 +24,7 @@ if you also use CLIP; plain `uv sync` can remove that optional dependency set.
 Training writes `model.joblib`, `evaluation.json`, and `split.json` under the
 output directory. Audit writes `data/sample/listing-audit.json`. Models and
 datasets remain gitignored; copy the model to another computer along with a
-checkout of the code that supports it. The `v0.2.0` release bundle includes the
+checkout of the code that supports it. The `v0.2.1` release bundle includes the
 listing and calibrated icon models; see [README.md](README.md) for download
 commands. The older `model-v1` release contains only the original icon classifier.
 
@@ -181,6 +181,8 @@ and their contrast and color distance to visible icon pixels. All learned
 targets use class-balanced logistic regression; each criterion requires five
 training examples per class. Labels, comments, app IDs, review metadata, and
 descriptions are never predictive features.
+If every learned criterion is skipped, training fails and preserves any existing
+output artifacts.
 
 Splitting joins image duplicate groups, identical normalized names, and identical
 normalized summaries into connected groups. A 75/25 development/test split is

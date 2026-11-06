@@ -277,6 +277,11 @@ def train_listing(root: Path, output: Path, seed=42):
                 )
         else:
             report["evaluation_unavailable"] = "No labeled test examples"
+    if not models:
+        raise ValueError(
+            "No listing classifiers could be trained: need usable inputs and at least "
+            "five training examples per class. Existing output was preserved."
+        )
     for key in RULE_CRITERIA:
         labeled = [i for i in test if usable_label(records[i], key) is not None]
         reports[key] = {"method": "rule", "test": len(labeled)}

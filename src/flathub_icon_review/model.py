@@ -151,6 +151,12 @@ def train(root: Path, output: Path, kind: str, seed: int):
                 )
         else:
             reports[criterion]["evaluation_unavailable"] = "No labeled test examples"
+    if not models:
+        raise ValueError(
+            "No icon classifiers could be trained: need at least five training "
+            "examples per class for at least one criterion. "
+            "Existing output was preserved."
+        )
     report = {
         "seed": seed,
         "features": extractor.spec,
@@ -201,8 +207,17 @@ def train(root: Path, output: Path, kind: str, seed: int):
 def predict(model_path: Path, image_path: Path):
     # Only load model artifacts you trust: joblib is pickle-based.
     artifact = joblib.load(model_path)
+    if (
+        not isinstance(artifact, dict)
+        or not isinstance(artifact.get("features"), dict)
+        or not isinstance(artifact.get("models"), dict)
+        or artifact["features"].get("kind") not in ("handcrafted", "clip")
+    ):
+        raise ValueError(
+            "Expected an icon model trained with 'appraise train', not a listing model"
+        )
     spec = artifact["features"]
-    if spec["version"] != FEATURE_VERSION:
+    if spec.get("version") != FEATURE_VERSION:
         raise ValueError("Model uses an incompatible feature version")
     extractor = Extractor(spec["kind"], revision=spec.get("revision"))
     x = extractor.extract(image_path)[None, :]

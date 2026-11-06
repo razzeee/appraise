@@ -92,6 +92,9 @@ logistic regression maps each classifier's decision score to pass probability,
 using only calibration labels. At least five examples of each class are required
 for calibration; otherwise that criterion retains its raw score and prediction
 explicitly marks it as uncalibrated. Older artifacts remain supported.
+If no classifiers can be trained, training fails before replacing any existing
+model or evaluation files. Feature-cache writes are atomic; unreadable cached
+features are recomputed on the next run.
 
 `evaluation.json` reports failure precision/recall, false-alarm rate, confusion
 counts, and failure average precision, alongside an always-pass reference.

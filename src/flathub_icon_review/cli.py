@@ -155,11 +155,17 @@ def main():
     elif args.command == "train":
         from .model import train
 
-        result = train(args.data, args.output, args.features, args.seed)
+        try:
+            result = train(args.data, args.output, args.features, args.seed)
+        except (ValueError, OSError) as error:
+            parser.error(str(error))
     else:
         from .model import predict
 
-        result = predict(args.model, args.image)
+        try:
+            result = predict(args.model, args.image)
+        except (ValueError, OSError) as error:
+            parser.error(str(error))
     if args.command in ("review", "review-url") and args.format == "moderation-json":
         from .moderation import moderation_payloads
 

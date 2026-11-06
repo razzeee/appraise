@@ -15,15 +15,15 @@ CLIP-based classifiers, and duplicate-aware evaluation.
 ## Quick start
 
 Requires [uv](https://docs.astral.sh/uv/) and Python 3.12. From a fresh clone,
-download the trained models from the `v0.2.0` release (requires GitHub CLI access
+download the trained models from the `v0.2.1` release (requires GitHub CLI access
 to this repository):
 
 ```sh
 uv sync --extra embeddings --locked
-gh release download v0.2.0 --repo razzeee/icon-taste \
-  --pattern icon-taste-models-v0.2.0.tar.gz --pattern SHA256SUMS
+gh release download v0.2.1 --repo razzeee/appraise \
+  --pattern appraise-models-v0.2.1.tar.gz --pattern SHA256SUMS
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xzf icon-taste-models-v0.2.0.tar.gz
+tar -xzf appraise-models-v0.2.1.tar.gz
 uv run --extra embeddings appraise review-url https://flathub.org/apps/org.gnome.Calculator
 ```
 

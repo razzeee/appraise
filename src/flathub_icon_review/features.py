@@ -3,6 +3,7 @@
 import hashlib
 import json
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 from PIL import Image, ImageOps
@@ -96,8 +97,22 @@ class Extractor:
         key = hashlib.sha256(json.dumps(self.spec, sort_keys=True).encode()).hexdigest()
         path = root / "features" / key / f"{record['icon_sha256']}.npy"
         if path.exists():
-            return np.load(path, allow_pickle=False)
+            try:
+                return np.load(path, allow_pickle=False)
+            except (ValueError, EOFError, OSError):
+                # A cache is disposable; recover interrupted or damaged writes.
+                pass
         result = self.extract(root / record["icon_path"])
         path.parent.mkdir(parents=True, exist_ok=True)
-        np.save(path, result)
+        temporary = None
+        try:
+            with NamedTemporaryFile(
+                dir=path.parent, suffix=".tmp", delete=False
+            ) as file:
+                temporary = Path(file.name)
+                np.save(file, result)
+            temporary.replace(path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
         return result
