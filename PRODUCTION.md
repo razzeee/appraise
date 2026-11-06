@@ -49,6 +49,16 @@ network access. Never put authentication cookies or tokens in review metadata.
 
 ## Release acceptance checklist
 
+Every release must be self-contained: attach its wheel, source distribution,
+complete model bundle, and `SHA256SUMS` covering every attached package and bundle.
+The model bundle must contain all three supported model pipelines (calibrated
+CLIP, calibrated baseline, and listing), each with `model.joblib`,
+`evaluation.json`, and `split.json`, plus a provenance manifest with per-file
+checksums. Include unchanged artifacts too; never require users to fetch files
+from an earlier release. Verify the uploaded asset inventory before announcing
+the release. Pretrained third-party CLIP encoder weights remain a separately
+documented first-use dependency.
+
 ```sh
 uv sync --locked --extra embeddings
 uv run --no-sync ruff check .
