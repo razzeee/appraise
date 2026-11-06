@@ -2,7 +2,7 @@
 
 ## Full-catalog expansion (completed)
 
-The expansion finished at 22:07 UTC in `/home/razze/.t3/projects/icon-taste`.
+The expansion finished at 22:07 UTC in the project checkout.
 Collection covered the cached 3,388-entry catalog: 3,357 icon records, 30 entries
 without icons, and one unavailable quality-review endpoint (`org.winehq.Wine`,
 HTTP 404). There are 3,029 apps with at least one reviewed icon criterion.
@@ -31,7 +31,7 @@ and use separate validation data before tuning thresholds or selecting models.
 
 ## Dataset
 
-Command: `uv run icon-review collect --limit 300` (seed 42).
+Command: `uv run appraise collect --limit 300` (seed 42).
 
 - Catalog sampling frame: 3,388 app IDs.
 - 298 icons collected; 270 apps have at least one reviewed icon criterion.
@@ -50,7 +50,7 @@ Command: `uv run icon-review collect --limit 300` (seed 42).
 
 ## Handcrafted baseline
 
-Command: `uv run icon-review train` (seed 42).
+Command: `uv run appraise train` (seed 42).
 
 202 training apps and 68 held-out apps, with missing labels masked per criterion.
 The duplicate-grouping heuristic found 270 separate groups among labeled apps.
@@ -79,7 +79,7 @@ Local artifacts (gitignored):
 
 ## Frozen CLIP experiment
 
-Command: `uv run --extra embeddings icon-review train --features clip --output artifacts/clip`.
+Command: `uv run --extra embeddings appraise train --features clip --output artifacts/clip`.
 
 Completed using the same 202/68 app split and fixed classifier hyperparameters.
 Encoder: `openai/clip-vit-base-patch32`, revision

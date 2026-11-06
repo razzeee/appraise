@@ -108,9 +108,3 @@ uv run --extra embeddings appraise review examples/listing.json \
 
 See [LISTING.md](LISTING.md) for all criteria, combined icon review, input format,
 rules-only mode, training details, and limitations.
-
-## Compatibility
-
-Appraise was previously named Icon Taste. The `icon-review` command remains an
-alias. The Python module remains `flathub_icon_review` so existing trained models
-can still be loaded. Older releases retain their original asset filenames.
