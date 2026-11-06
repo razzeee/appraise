@@ -111,3 +111,6 @@ rules-only mode, training details, and limitations.
 
 See [PRODUCTION.md](PRODUCTION.md) for deployment safeguards, release checks,
 and the independent-validation requirements before any unattended moderation.
+
+See [runtime/README.md](runtime/README.md) to build and publish an offline
+backend archive with Python, models and CLIP weights.

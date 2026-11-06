@@ -1,0 +1,56 @@
+name: Publish offline runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'New runtime release tag (for example runtime-v0.2.2-1)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate new release tag
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$TAG" =~ ^runtime-v[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$ ]]
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG"; then
+            echo "Runtime tags are immutable; choose a new tag."
+            exit 1
+          fi
+      - uses: docker/setup-buildx-action@v3
+      - name: Build and verify offline runtime
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: runtime/Dockerfile
+          platforms: linux/amd64
+          outputs: type=local,dest=dist/runtime
+      - name: Checksum and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          cp runtime/release.json dist/runtime/release.json
+          cd dist/runtime
+          sha256sum appraise-runtime-linux-amd64.tar.gz release.json > SHA256SUMS
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" --title "Appraise offline runtime $TAG" \
+            --notes 'This archive contains the offline linux/amd64 runtime for Debian testing. Extract it at /. See runtime/README.md at the release commit for backend setup instructions.' \
+            appraise-runtime-linux-amd64.tar.gz release.json SHA256SUMS
+          cat SHA256SUMS >> "$GITHUB_STEP_SUMMARY"
